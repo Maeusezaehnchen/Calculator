@@ -1,0 +1,29 @@
+*{
+    color: white;
+}
+
+body{
+    background: #222;
+
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+.middlebox {
+    position: absolute;
+
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+
+    background: #333;
+
+    padding: 48px;
+
+    border-radius: 24px;
+
+    width: 500px;
+    height: 250px;
+
+    display: block flow;
+}
+
