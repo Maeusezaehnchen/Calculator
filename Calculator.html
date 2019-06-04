@@ -11,16 +11,72 @@
     <div class="container">
         <form class="middlebox" action="">
             <h1>Online Calculator</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <p>This calculator was designed by Sebastian Kern as a project for the Computer Science lessons in 10th grade.</p>
             <div class="calculator-box">
                 <i class="fas fa-calculator"></i>
                 <input id="in" class="ibox" type="text" name="" value="" placeholder="Enter Your Expression here...">
-                <button class="btn" type="button" name="button">Calculate</button>
+                <button onclick="calculate()" class="btn" type="button" name="button">Calculate</button>
             </div>
-        </form>
+		</form>
+		
+		<br>
+
+		<form id="last-calc" class="last-calculations-box">
+		</form>
 
     </div>
 
     <script src="calculator.js"></script>
+    <script type="text/javascript">
+		function calculate() {
+			var inputString = document.getElementById('in').value;
+			var value = evaluateMathematicalExpression(inputString);
+
+			if (value == -1) {
+				alert();
+				return -1;
+			}
+
+			loadNewCalculationsBox(value, inputString);
+			
+		}
+
+		function loadNewCalculationsBox(result, expression) {
+			var div = document.createElement("P");
+
+			div.style.background = "brown";
+			div.style.padding = "25px";
+			div.style.color = "white";
+			div.style.borderRadius = "6px";
+			div.style.fontWeight = "900";
+
+			div.innerHTML = expression + " = " + result;
+
+			var parent = document.getElementById("last-calc");
+			parent.insertBefore(div, parent.childNodes[0]);
+
+			for (let index = 0; index < parent.childNodes.length; index++) {
+				const element = parent.childNodes[index];
+				
+				if (index != 0 && index < 5) {
+					element.style.background = "#222";
+					element.style.padding = "10px";
+					element.style.fontWeight = "700";
+
+					element.style.width = "300px";
+
+					element.style.opacity = String(1.5 / index);
+				}
+
+				if (index >= 5) {
+					element.style.opacity = "0";
+					element.style.position = "absolute";
+					element.style.top = "0";
+				}
+
+				
+			}
+		}
+    </script>
   </body>
 </html>

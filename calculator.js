@@ -30,15 +30,12 @@ SolvingOrder = {
     LEFT_BRACE: 3
 }
 
-function evaluateMathematicalExpression() {
-    // Definiert den grundlegenden Programmablauf
+function evaluateMathematicalExpression(expressionString) {
 
-    var expression = document.getElementById('in').value;
-
-    if (expression == '') {
-        alert("Bitte geben Sie einen mathematischen Ausdruck ein!");
+    if (expressionString == '') {
+        return -1;
     } else {
-        var lexList = lexExpression(expression);
+        var lexList = lexExpression(expressionString);
 
         if (lexList == -1) {
             return -1;
@@ -48,19 +45,18 @@ function evaluateMathematicalExpression() {
 
         try {
             var valueOfEquation = solveParsedExpression(parsedList);
-            document.getElementById('out').innerHTML = valueOfEquation;
+            if (valueOfEquation == -1) {
+                return -1;
+            }
+            return valueOfEquation;
         } catch (err) {
-            document.getElementById('out').innerHTML = err.message;
+            return -1;
         }
-        
+
     }
-    
 };
 
 function lexExpression(exprString) {
-    // Konvertiert string mit einem mathematischen Asudruck
-    // in eine Liste von zugehörigen Zeichenfolgen
-    // Bsp: '562 / (789 + 45)' -> ['562', '/', '(', '789', '+', '45', ')']
     
     var operators = '+-*/^';
     var numbers = '0123456789';
@@ -77,7 +73,6 @@ function lexExpression(exprString) {
         for (var a = 0; a < operators.length; a++) {
             if (exprString[i] == operators[a]) {
                 if (lastType == TypeEnum.OPERATOR) {
-                    alert("Es sind keine zwei aufeinander folgenden Operatoren erlaubt!");
                     return -1;
                 } else {
                     lastType = TypeEnum.OPERATOR;
@@ -170,7 +165,6 @@ function lexExpression(exprString) {
     }
 
     if (lexList.length == 0) {
-        alert("Kein mathematischer Ausdruck erkannt!");
         return -1;
     }
 
@@ -179,7 +173,6 @@ function lexExpression(exprString) {
 }
 
 function parseLexedList(lexList) {
-    // Konvertiert die gelexte Liste in eine geparste Liste
 
     var operators = '+-*/^';
     var numbers = '0123456789';
@@ -233,7 +226,6 @@ function parseLexedList(lexList) {
 }
 
 function solveParsedExpression(parsedList) {
-    // Löst die geparste Gleichung
 
     var tmpList = parsedList;
     var operatorIndex = null;
@@ -260,6 +252,10 @@ function solveParsedExpression(parsedList) {
 
                 returnVal = solveAtIndex(tmpList, operatorIndex);
 
+                if (returnVal == -1) {
+                    return -1;
+                }
+
                 console.log("Last: " + returnVal.last);
 
                 console.log(tmpList.splice(returnVal.last, returnVal.next - returnVal.last + 1));
@@ -275,8 +271,6 @@ function solveParsedExpression(parsedList) {
 }
 
 function solveAtIndex(parsedList, index) {
-    // Löst eine Teilgleichung an der Stelle der 
-    // Liste sie durch index festgelegt wird
 
     console.log(index);
 
@@ -328,7 +322,7 @@ function solveAtIndex(parsedList, index) {
             break;
         case '/':
             if (number2 == 0) {
-                alert("Durch 0 teilen ist nicht erlaubt!")
+                return -1;
             } else {
                 result = number1 / number2;
             }
@@ -348,8 +342,7 @@ function solveAtIndex(parsedList, index) {
         case '//':
             break;
         default:
-            alert("An Error occured while computing expression!");
-            break;
+            return -1;
     }
 
     return {result: result, 
@@ -359,7 +352,6 @@ function solveAtIndex(parsedList, index) {
 }
 
 function getNextNumeric(parsedList, start_at_index) {
-    // Gibt den nächsten definierten numerischen Wert zurück 
 
     for (let index = start_at_index + 1; index < parsedList.length; index++) {
         if (parsedList[index].currentNumeric != '') {
@@ -371,7 +363,6 @@ function getNextNumeric(parsedList, start_at_index) {
 }
 
 function getLastNumeric(parsedList, end_at_index) {
-    // Gibt den letzten vorherigen numerischen Wert zurück
 
     var lastIndex = null;
 
@@ -388,10 +379,7 @@ function getLastNumeric(parsedList, end_at_index) {
     return lastIndex;
 }
 
-function getFirstHighestRankedOperator(parsedList, currentIndex) {
-    // Gibt die Stelle mit dem Operator 
-    // der am höchsten gerankt ist zurück
-    
+function getFirstHighestRankedOperator(parsedList, currentIndex) {    
     console.log("Trying index: " + currentIndex);
 
     if (!(parsedList.length - 1 > currentIndex)) {
@@ -414,8 +402,6 @@ function getFirstHighestRankedOperator(parsedList, currentIndex) {
 }
 
 function compareOperator(operator1, operator2) {
-    // Gibt True zurück wenn operator1 den höheren Wert hat und False wenn operator2 größer ist
-    // Bei gleichem Wert wird True zurückgegeben
 
     var op1Val;
     var op2Val;
@@ -446,8 +432,7 @@ function compareOperator(operator1, operator2) {
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            alert("An Error occured while trying to compare two operators");
-            break;
+            return -1;
     }
 
     switch (operator2[0]) {
@@ -476,8 +461,7 @@ function compareOperator(operator1, operator2) {
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            alert("An Error occured while trying to compare two operators");
-            break;
+            return -1;
     }
 
     if (op1Val < op2Val) {
