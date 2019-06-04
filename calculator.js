@@ -2,7 +2,7 @@
 Calculator.js;
 Version: V1.0
 Author: Sebastian Kern
-Git: 
+Git: https://github.com/Maeusezaehnchen/Calculator
 
 */
 
