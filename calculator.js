@@ -4,6 +4,30 @@ Version: V1.0
 Author: Sebastian Kern
 Git: https://github.com/Maeusezaehnchen/Calculator
 
+License:
+
+MIT License
+
+Copyright (c) 2019 Maeusezaehnchen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 TypeEnum = {
@@ -30,36 +54,44 @@ SolvingOrder = {
     LEFT_BRACE: 3
 }
 
+CalculationErrors = {
+    DivisionTroughNull: "Division trough zero is not allowed!",
+    BraceNotClosed: "A Brace is not closed!",
+    BraceClosed: "A Brace was closed but never opened!",
+    InternalError: "A Internal error occurred!",
+    NoArgumentsGiven: "Couldn't recognize any arguments!",
+}
+
 function evaluateMathematicalExpression(expressionString) {
 
     if (expressionString == '') {
-        return -1;
+        throw CalculationErrors.NoArgumentsGiven;
     } else {
-        var lexList = lexExpression(expressionString);
-
-        if (lexList == -1) {
-            return -1;
+        try {
+            var lexList = lexExpression(expressionString);
+        } catch (err) {
+            throw err;
         }
 
-        var parsedList = parseLexedList(lexList);
+        try {
+            var parsedList = parseLexedList(lexList);
+        } catch (err) {
 
+        }
+        
         try {
             var valueOfEquation = solveParsedExpression(parsedList);
-            if (valueOfEquation == -1) {
-                return -1;
-            }
             return valueOfEquation;
         } catch (err) {
-            return -1;
+            throw err;
         }
 
     }
 };
 
 function lexExpression(exprString) {
-    
     var operators = '+-*/^';
-    var numbers = '0123456789';
+    var numbers = '0123456789.';
     var brace = '()';
 
     var openBraces = 0;
@@ -69,11 +101,31 @@ function lexExpression(exprString) {
     var lexList = [];
 
     for (var i = 0; i < exprString.length; i++) {
-
         for (var a = 0; a < operators.length; a++) {
+
             if (exprString[i] == operators[a]) {
                 if (lastType == TypeEnum.OPERATOR) {
-                    return -1;
+                    if (exprString[i] == '-') {
+                        console.log("Negative Number detected!")
+
+                        lastType = TypeEnum.NUMBER;
+
+                        if (currentString != '') {
+                            lexList.push(currentString);
+                        }
+
+                        currentString = '';
+                        currentString += exprString[i];
+
+                        console.log("Appended")
+
+                        /* 
+                        if (i + 1 == exprString.length) {
+                            console.log("Length reached!")
+                            return -1;
+                        }
+                        */
+                    }
                 } else {
                     lastType = TypeEnum.OPERATOR;
 
@@ -82,7 +134,7 @@ function lexExpression(exprString) {
                     }
 
                     lexList.push(exprString[i])
-                    
+
                     currentString = '';
 
                     if (i + 1 == exprString.length) {
@@ -96,7 +148,7 @@ function lexExpression(exprString) {
             if (exprString[i] == numbers[a]) {
                 if (lastType == TypeEnum.NUMBER) {
                     currentString += exprString[i];
-                    
+
                     if (i + 1 == exprString.length) {
                         lexList.push(currentString);
                     }
@@ -129,7 +181,7 @@ function lexExpression(exprString) {
 
                 } else {
                     lastType = TypeEnum.BRACE;
-                    
+
                     if (currentString != '') {
                         lexList.push(currentString);
                     }
@@ -153,21 +205,19 @@ function lexExpression(exprString) {
     }
 
     if (openBraces > 0) {
-        if (confirm("Eine Klammer wurde nicht geschlossen! Möchten Sie fortfahren?")) {
-            return -1;
-        }
+        throw CalculationErrors.BraceNotClosed;
     }
 
     if (openBraces < 0) {
-        if (confirm("Eine Klammer wurde umsonst geschlossen! Möchten Sie fortfahren?")) {
-            return -1;
-        }
+        throw CalculationErrors.BraceClosed;
     }
 
     if (lexList.length == 0) {
-        return -1;
+        throw CalculationErrors.NoArgumentsGiven;
     }
 
+    console.log("---------------------------------------");
+    console.log("Lexing finished...")
     console.log(lexList);
     return lexList;
 }
@@ -185,41 +235,66 @@ function parseLexedList(lexList) {
 
     for (var i = 0; i < lexList.length; i++) {
         if (operators.includes(lexList[i][0])) {
-            // console.log(lexList[i] + " Contains operator!");
+            if (lexList[i][0] == '-' && lexList[i].length > 1) {
+                // For support of negative numerics
 
-            currentOperator = lexList[i];
+                currentNumeric = lexList[i];
 
-            parsedList.push({currentNumeric, currentOperator})
-            currentNumeric = '';
-            currentOperator = '';
+                if (i + 1 == lexList.length) {
+                    currentOperator = '//';
+
+                    console.log("Pushing: " + currentNumeric + " and " + currentOperator + " to parse list...");
+                    parsedList.push({
+                        currentNumeric,
+                        currentOperator
+                    });
+                }
+            } else {
+                currentOperator = lexList[i];
+                parsedList.push({
+                    currentNumeric,
+                    currentOperator
+                })
+                currentNumeric = '';
+                currentOperator = '';
+            }
         }
 
         if (numbers.includes(lexList[i][0])) {
-            // console.log(lexList[i] + " Contains number!");
+            // For support of positive numerics
 
             currentNumeric = lexList[i];
 
             if (i + 1 == lexList.length) {
                 currentOperator = '//';
 
-                parsedList.push({currentNumeric, currentOperator})
+                parsedList.push({
+                    currentNumeric,
+                    currentOperator
+                })
             }
         }
 
         if (brace.includes(lexList[i][0])) {
-            // console.log(lexList[i] + " Contains bracket!");
+            // For support of braces
 
             if (lexList[i][0] == "(") {
                 currentNumeric = '';
             }
-        
+
             currentOperator = lexList[i];
 
-            parsedList.push({currentNumeric, currentOperator})
+            parsedList.push({
+                currentNumeric,
+                currentOperator
+            })
             currentNumeric = '';
             currentOperator = '';
         }
     }
+
+    console.log("---------------------------------------");
+    console.log("Parsing finished...");
 
     console.log(parsedList);
     return parsedList;
@@ -236,51 +311,69 @@ function solveParsedExpression(parsedList) {
         var isSolved = false;
     }
 
+    counter = 0;
+
     while (!isSolved) {
+        counter++;
         console.log("---------------------------------------");
+        console.log(counter + ". passing...");
 
         if (tmpList.length == 1) {
-            console.log("solved");
+            console.log("Expression solved");
             return tmpList[0].currentNumeric;
         } else {
             if (tmpList.length == 1) {
                 return tmpList[0].currentNumeric;
             } else {
                 var returnVal = 0;
-                
+
                 operatorIndex = getFirstHighestRankedOperator(tmpList, 0);
 
-                returnVal = solveAtIndex(tmpList, operatorIndex);
-
-                if (returnVal == -1) {
-                    return -1;
+                try {
+                    returnVal = solveAtIndex(tmpList, operatorIndex);
+                } catch (err) {
+                    throw err;
                 }
 
-                console.log("Last: " + returnVal.last);
+                console.log("Solved elements from: " + returnVal.last + " to " + returnVal.next);
 
                 console.log(tmpList.splice(returnVal.last, returnVal.next - returnVal.last + 1));
-                console.log(tmpList.splice(returnVal.last, 0, {currentNumeric: returnVal.result, currentOperator: returnVal.operator}));
+                console.log(tmpList.splice(returnVal.last, 0, {
+                    currentNumeric: returnVal.result,
+                    currentOperator: returnVal.operator
+                }));
                 console.log(tmpList.join());
             }
 
             console.log(tmpList);
         }
     }
-    console.log("solved");
+    console.log("Expression solved...");
     return tmpList[0].currentNumeric;
 }
 
 function solveAtIndex(parsedList, index) {
 
-    console.log(index);
+    console.log("Solving at index: " + index);
 
     var result = 0;
     var left_operator = parsedList[getNextNumeric(parsedList, index)].currentOperator;
 
-    var number1 = Number(parsedList[getLastNumeric(parsedList, index)].currentNumeric);
-    var number2 = Number(parsedList[getNextNumeric(parsedList, index)].currentNumeric);
+    console.log("Converting string to number...");
+
+    try {
+        var number1 = Number(parsedList[getLastNumeric(parsedList, index)].currentNumeric);
+        var number2 = Number(parsedList[getNextNumeric(parsedList, index)].currentNumeric);
+    } catch (err) {
+        throw err;
+    }
+    
+    console.log("Number 1: " + number1);
+    console.log("Number 2: " + number2);
 
     var operator = parsedList[index].currentOperator;
+
+    console.log("Operator: " + operator);
 
     var index_cpy = index
 
@@ -308,10 +401,10 @@ function solveAtIndex(parsedList, index) {
         }
     }
 
-    console.log("Computing: " + number1 + operator + number2);
+    console.log("Computing: " + number1 + " " + operator + " " + number2);
 
     switch (operator) {
-        case '+':                
+        case '+':
             result = number1 + number2;
             break;
         case '-':
@@ -322,33 +415,52 @@ function solveAtIndex(parsedList, index) {
             break;
         case '/':
             if (number2 == 0) {
-                return -1;
+                throw CalculationErrors.DivisionTroughNull;
             } else {
                 result = number1 / number2;
             }
             break;
         case '^':
-            result = Math.pow(number1, number2); 
+            result = Math.pow(number1, number2);
             break;
         case ')':
-        
-            return solveAtIndex(parsedList, index - 1);
+            try {
+                return solveAtIndex(parsedList, index - 1);
+            } catch (err) {
+                throw err;
+            }
+            
         case '(':
             if (index - 1 <= 0) {
                 result = number2;
             } else {
-                return solveAtIndex(parsedList, index - 1);
+                try {
+                    return solveAtIndex(parsedList, index - 1);
+                } catch (err) {
+                    throw err;
+                }
             }
         case '//':
             break;
         default:
-            return -1;
+            throw CalculationErrors.InternalError;
     }
 
-    return {result: result, 
-            operator: left_operator,
-            last: getLastNumeric(parsedList, index), 
-            next: getNextNumeric(parsedList, index)};
+    console.log("Result is: " + result);
+    try {
+
+    } catch (err) {
+        throw err;
+    }
+    var next = getNextNumeric(parsedList, index);
+    var last = getLastNumeric(parsedList, index);
+
+    return {
+        result: result,
+        operator: left_operator,
+        last: last,
+        next: next
+    };
 }
 
 function getNextNumeric(parsedList, start_at_index) {
@@ -375,11 +487,11 @@ function getLastNumeric(parsedList, end_at_index) {
     if (lastIndex < 0 || lastIndex == null) {
         return 0;
     }
-    
+
     return lastIndex;
 }
 
-function getFirstHighestRankedOperator(parsedList, currentIndex) {    
+function getFirstHighestRankedOperator(parsedList, currentIndex) {
     console.log("Trying index: " + currentIndex);
 
     if (!(parsedList.length - 1 > currentIndex)) {
@@ -389,14 +501,18 @@ function getFirstHighestRankedOperator(parsedList, currentIndex) {
             return currentIndex - 1;
         }
     } else {
-        if (compareOperator(parsedList[currentIndex].currentOperator, parsedList[currentIndex + 1].currentOperator)) {
-            if (parsedList[currentIndex].currentOperator == "(") {
-                return getFirstHighestRankedOperator(parsedList, currentIndex + 1)
+        try {
+            if (compareOperator(parsedList[currentIndex].currentOperator, parsedList[currentIndex + 1].currentOperator)) {
+                if (parsedList[currentIndex].currentOperator == "(") {
+                    return getFirstHighestRankedOperator(parsedList, currentIndex + 1)
+                } else {
+                    return currentIndex;
+                }
             } else {
-                return currentIndex;
+                return getFirstHighestRankedOperator(parsedList, currentIndex + 1);
             }
-        } else {
-            return getFirstHighestRankedOperator(parsedList, currentIndex + 1);
+        } catch (err) {
+            throw err;
         }
     }
 }
@@ -432,7 +548,7 @@ function compareOperator(operator1, operator2) {
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            return -1;
+            throw CalculationErrors.InternalError;
     }
 
     switch (operator2[0]) {
@@ -461,12 +577,14 @@ function compareOperator(operator1, operator2) {
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            return -1;
+            throw CalculationErrors.InternalError;
     }
 
     if (op1Val < op2Val) {
+        console.log("Compared Operator: '" + operator1 + "' and Operator: '" + operator2 + "' :: '" + operator2 + "' is higher");
         return false;
     } else {
+        console.log("Compared '" + operator1 + "' and '" + operator2 + "' -> '" + operator1 + "' is higher");
         return true;
     }
 }
