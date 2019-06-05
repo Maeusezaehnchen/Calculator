@@ -52,7 +52,6 @@
 			loadNewCalculationsBox(value, inputString);
 
 			return false;
-
 		}
 		
 		function loadNewCalculationsBox(result, expression) {
@@ -64,7 +63,7 @@
 			div.style.borderRadius = "6px";
 			div.style.fontWeight = "900";
 
-			div.innerHTML = expression + " = " + result;
+			div.innerText = expression + " = " + result;
 
 			var parent = document.getElementById("last-calc");
 			parent.insertBefore(div, parent.childNodes[0]);
