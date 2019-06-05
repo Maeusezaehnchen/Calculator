@@ -42,11 +42,11 @@
 
 		function calculate() {
 			var inputString = document.getElementById('in').value;
-			var value = evaluateMathematicalExpression(inputString);
 
-			if (value == -1) {
-				alert("An Error occured while processing your input. Did you spelled everything right?")
-				return false;
+			try {
+				var value = evaluateMathematicalExpression(inputString);
+			} catch (err) {
+				alert(err);
 			}
 
 			loadNewCalculationsBox(value, inputString);
@@ -54,7 +54,7 @@
 			return false;
 
 		}
-
+		
 		function loadNewCalculationsBox(result, expression) {
 			var div = document.createElement("P");
 
