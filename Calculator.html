@@ -1,44 +1,58 @@
 <html>
-  <head>
-    <title>Calculator</title>
-    <meta charset="utf-8" />
 
-    <link rel="stylesheet" href="calculator.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
-  </head>
+<head>
+	<title>Calculator</title>
+	<meta charset="utf-8" />
 
-  <body>
-    <div class="container">
-        <form class="middlebox" action="">
-            <h1>Online Calculator</h1>
-            <p>This calculator was designed by Sebastian Kern as a project for the Computer Science lessons in 10th grade.</p>
-            <div class="calculator-box">
-                <i class="fas fa-calculator"></i>
-                <input id="in" class="ibox" type="text" name="" value="" placeholder="Enter Your Expression here...">
-                <button onclick="calculate()" class="btn" type="button" name="button">Calculate</button>
-            </div>
-		</form>
-		
+	<link rel="stylesheet" href="calculator.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+</head>
+
+<body>
+	<div class="container">
+		<div class="middlebox">
+			<h1>Online Calculator</h1>
+			<p>This calculator was designed by Sebastian Kern as a project for the Computer Science lessons in 10th
+				grade.</p>
+			<div class="calculator-box">
+				<i class="fas fa-calculator"></i>
+				<!-- Fix reload when enter is pressed -->
+				<input onkeypress="onEnterKeyPress(event)" id="in" class="ibox" type="text" name="" value=""
+					placeholder="Enter Your Expression here...">
+				<button onclick="calculate()" class="btn" type="button" name="button">Calculate</button>
+			</div>
+		</div>
+
 		<br>
 
 		<form id="last-calc" class="last-calculations-box">
 		</form>
 
-    </div>
+	</div>
 
-    <script src="calculator.js"></script>
-    <script type="text/javascript">
+	<script src="calculator.js"></script>
+	<script type="text/javascript">
+		function onEnterKeyPress(e) {
+			if (e.charCode == "13") {
+				e.preventDefault();
+
+				calculate();
+			}
+		}
+
 		function calculate() {
 			var inputString = document.getElementById('in').value;
 			var value = evaluateMathematicalExpression(inputString);
 
 			if (value == -1) {
-				alert();
-				return -1;
+				alert("An Error occured while processing your input. Did you spelled everything right?")
+				return false;
 			}
 
 			loadNewCalculationsBox(value, inputString);
-			
+
+			return false;
+
 		}
 
 		function loadNewCalculationsBox(result, expression) {
@@ -57,7 +71,7 @@
 
 			for (let index = 0; index < parent.childNodes.length; index++) {
 				const element = parent.childNodes[index];
-				
+
 				if (index != 0 && index < 5) {
 					element.style.background = "#222";
 					element.style.padding = "10px";
@@ -74,9 +88,10 @@
 					element.style.top = "0";
 				}
 
-				
+
 			}
 		}
-    </script>
-  </body>
+	</script>
+</body>
+
 </html>
