@@ -67,17 +67,20 @@ function lexExpression(exprString) {
     for (var i = 0; i < exprString.length; i++) {
         for (var a = 0; a < operators.length; a++) {
             if (exprString[i] == operators[a]) {
-                lastType = TypeEnum.OPERATOR;
-
                 if (string != '') {
+                    console.log(lastType, string);
                     lexList.push({lastType, string});
                 }
 
+                lastType = TypeEnum.OPERATOR;
+
+                console.log(lastType, exprString[i]);
                 lexList.push({lastType, string: exprString[i]})
 
                 string = '';
 
-                if (i + 1 == exprString.length) {
+                if (i + 1 == exprString.length && string != '') {
+                    console.log(lastType, string);
                     lexList.push({lastType, string});
                 }
             }
@@ -89,19 +92,22 @@ function lexExpression(exprString) {
                     string += exprString[i];
 
                     if (i + 1 == exprString.length) {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
 
                 } else {
-                    lastType = TypeEnum.NUMBER;
-
                     if (string != '') {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
+
+                    lastType = TypeEnum.NUMBER;
 
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
                 }
@@ -111,23 +117,27 @@ function lexExpression(exprString) {
         for (var a = 0; a < brace.length; a++) {
             if (exprString[i] == brace[a]) {
                 if (lastType == TypeEnum.BRACE) {
+                    console.log(lastType, string);
                     lexList.push({lastType, string});
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
 
                 } else {
-                    lastType = TypeEnum.BRACE;
-
                     if (string != '') {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
+
+                    lastType = TypeEnum.BRACE;
 
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
+                        console.log(lastType, string);
                         lexList.push({lastType, string});
                     }
                 }
@@ -204,4 +214,4 @@ function getAndSolveBrace(exprString) {
         }
 }
 
-console.log(lexExpression("12 * (12 + 12) / 456"));
+console.log(lexExpression("/"));
