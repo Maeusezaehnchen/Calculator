@@ -8,7 +8,7 @@ License:
 
 MIT License
 
-Copyright (c) 2019 Maeusezaehnchen
+Copyright (c) 2019 Sebastian Kern
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,140 +30,105 @@ SOFTWARE.
 
 */
 
+// TODO: Support for negative numbers
+
 TypeEnum = {
     NONE: -1,
     BRACE: 0,
     NUMBER: 1,
-    OPERATOR: 2,
+    OPERATOR: 2
 }
 
 SolvingOrder = {
     END_OF_EQUATION: -2,
-
-    RIGHT_BRACE: -1,
 
     ADDITION: 0,
     SUBTRACTION: 0,
 
     DIVISION: 1,
     MULTIPLICATION: 1,
+    MODULO: 1,
 
     POWER: 2,
-    MODULO: 2,
 
-    LEFT_BRACE: 3
-}
-
-CalculationErrors = {
-    DivisionTroughNull: "Division trough zero is not allowed!",
-    BraceNotClosed: "A Brace is not closed!",
-    BraceClosed: "A Brace was closed but never opened!",
-    InternalError: "A Internal error occurred!",
-    NoArgumentsGiven: "Couldn't recognize any arguments!",
 }
 
 function evaluateMathematicalExpression(expressionString) {
+    let lexedTuple = lexExpression(expressionString);
 
-    if (expressionString == '') {
-        throw CalculationErrors.NoArgumentsGiven;
+    if (!checkRules(lexedTuple)) {
+        return false;
     } else {
-        try {
-            var lexList = lexExpression(expressionString);
-        } catch (err) {
-            throw err;
-        }
-
-        try {
-            var parsedList = parseLexedList(lexList);
-        } catch (err) {
-
-        }
-        
-        try {
-            var valueOfEquation = solveParsedExpression(parsedList);
-            return valueOfEquation;
-        } catch (err) {
-            throw err;
-        }
-
+        return findBraceAndSolveIt(lexedTuple).string;
     }
-};
+}
 
 function lexExpression(exprString) {
     var operators = '+-*/^';
     var numbers = '0123456789.';
     var brace = '()';
 
-    var openBraces = 0;
-
-    var lastType = TypeEnum.NONE;
-    var currentString = '';
+    var type = TypeEnum.NONE;
+    var string = '';
     var lexList = [];
 
     for (var i = 0; i < exprString.length; i++) {
         for (var a = 0; a < operators.length; a++) {
-
             if (exprString[i] == operators[a]) {
-                if (lastType == TypeEnum.OPERATOR) {
-                    if (exprString[i] == '-') {
-                        console.log("Negative Number detected!")
+                if (string != '') {
+                    lexList.push({
+                        type,
+                        string
+                    });
+                }
 
-                        lastType = TypeEnum.NUMBER;
+                type = TypeEnum.OPERATOR;
 
-                        if (currentString != '') {
-                            lexList.push(currentString);
-                        }
+                lexList.push({
+                    type,
+                    string: exprString[i]
+                })
 
-                        currentString = '';
-                        currentString += exprString[i];
+                string = '';
 
-                        console.log("Appended")
-
-                        /* 
-                        if (i + 1 == exprString.length) {
-                            console.log("Length reached!")
-                            return -1;
-                        }
-                        */
-                    }
-                } else {
-                    lastType = TypeEnum.OPERATOR;
-
-                    if (currentString != '') {
-                        lexList.push(currentString);
-                    }
-
-                    lexList.push(exprString[i])
-
-                    currentString = '';
-
-                    if (i + 1 == exprString.length) {
-                        lexList.push(currentString);
-                    }
+                if (i + 1 == exprString.length && string != '') {
+                    lexList.push({
+                        type,
+                        string
+                    });
                 }
             }
         }
 
         for (var a = 0; a < numbers.length; a++) {
             if (exprString[i] == numbers[a]) {
-                if (lastType == TypeEnum.NUMBER) {
-                    currentString += exprString[i];
+                if (type == TypeEnum.NUMBER) {
+                    string += exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        lexList.push(currentString);
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
                 } else {
-                    lastType = TypeEnum.NUMBER;
-
-                    if (currentString != '') {
-                        lexList.push(currentString);
+                    if (string != '') {
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
-                    currentString = exprString[i];
+                    type = TypeEnum.NUMBER;
+
+                    string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        lexList.push(currentString);
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
                 }
             }
@@ -171,237 +136,409 @@ function lexExpression(exprString) {
 
         for (var a = 0; a < brace.length; a++) {
             if (exprString[i] == brace[a]) {
-                if (lastType == TypeEnum.BRACE) {
-                    lexList.push(currentString);
-                    currentString = exprString[i];
+                if (type == TypeEnum.BRACE) {
+                    lexList.push({
+                        type,
+                        string
+                    });
+                    string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        lexList.push(currentString);
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
                 } else {
-                    lastType = TypeEnum.BRACE;
-
-                    if (currentString != '') {
-                        lexList.push(currentString);
+                    if (string != '') {
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
-                    currentString = exprString[i];
+                    type = TypeEnum.BRACE;
+
+                    string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        lexList.push(currentString);
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
                 }
-            }
-
-            if (exprString[i] == '(') {
-                openBraces++;
-            }
-
-            if (exprString[i] == ')') {
-                openBraces--
             }
         }
     }
 
-    if (openBraces > 0) {
-        throw CalculationErrors.BraceNotClosed;
-    }
-
-    if (openBraces < 0) {
-        throw CalculationErrors.BraceClosed;
-    }
+    console.log(lexList);
 
     if (lexList.length == 0) {
-        throw CalculationErrors.NoArgumentsGiven;
+        console.log("String is empty")
+
+        return null;
     }
 
-    console.log("---------------------------------------");
-    console.log("Lexing finished...")
-    console.log(lexList);
     return lexList;
 }
 
-function parseLexedList(lexList) {
+function checkRules(exprTuple) {
+    // Proves that the input string is a valid mathematical string
 
-    var operators = '+-*/^';
-    var numbers = '0123456789';
-    var brace = '()';
+    if (exprTuple.length == 1 && exprTuple[0].type == TypeEnum.NUMBER) {
+        return true;
+    }
 
-    var parsedList = [];
+    // 1. A Maximum of 2 operators after each other,
+    // but only if the second operator is a minus
+    let lastlastType = TypeEnum.NONE;
+    let lastType = TypeEnum.NONE;
+    let currentType = TypeEnum.NONE;
 
-    var currentNumeric = '';
-    var currentOperator = '';
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
 
-    for (var i = 0; i < lexList.length; i++) {
-        if (operators.includes(lexList[i][0])) {
-            if (lexList[i][0] == '-' && lexList[i].length > 1) {
-                // For support of negative numerics
+        console.log(index);
 
-                currentNumeric = lexList[i];
+        lastlastType = lastType;
+        lastType = currentType;
+        currentType = element.type;
 
-                if (i + 1 == lexList.length) {
-                    currentOperator = '//';
-
-                    console.log("Pushing: " + currentNumeric + " and " + currentOperator + " to parse list...");
-                    parsedList.push({
-                        currentNumeric,
-                        currentOperator
-                    });
+        if (lastType == currentType && lastlastType == lastType) {
+            if (currentType != TypeEnum.BRACE) {
+                return false;
+            }
+        } else {
+            if (currentType == lastType && lastlastType != lastType) {
+                if (currentType != TypeEnum.OPERATOR && currentType != TypeEnum.BRACE) {
+                    return false;
                 }
-            } else {
-                currentOperator = lexList[i];
-                parsedList.push({
-                    currentNumeric,
-                    currentOperator
-                })
-                currentNumeric = '';
-                currentOperator = '';
+
+                if (element.string != "-" && element.string != '(' && element.string != ')') {
+                    return false;
+                }
             }
         }
+    }
+    // !1 --------------------------------------------------
 
-        if (numbers.includes(lexList[i][0])) {
-            // For support of positive numerics
+    console.log("Condition 1: true");
 
-            currentNumeric = lexList[i];
+    // 2. No closing braces before the first opening brace
+    let openBraceCount = null;
 
-            if (i + 1 == lexList.length) {
-                currentOperator = '//';
-
-                parsedList.push({
-                    currentNumeric,
-                    currentOperator
-                })
-            }
+    exprTuple.forEach(element => {
+        if (element.string == '(') {
+            openBraceCount++;
         }
 
-        if (brace.includes(lexList[i][0])) {
-            // For support of braces
+        if (element.string == ')') {
+            openBraceCount--;
+        }
 
-            if (lexList[i][0] == "(") {
-                currentNumeric = '';
+        if (openBraceCount < 0) {
+            // If the open brace count falls below zero a 
+            // brace was closed that was never opened
+            return false;
+        }
+    });
+
+    if (openBraceCount != 0 && openBraceCount != null) {
+        // If the open brace count is higher than zero 
+        // when the loop has finished a brace 
+        // that was opened was not closed
+        return false;
+    }
+    // !2 --------------------------------------------------
+    console.log("Condition 2: true");
+
+    // 3. The first symbol can't be a Operator except '-' and '+'
+    if (exprTuple[0].type == TypeEnum.OPERATOR && exprTuple[0].string != "-" && exprTuple[0].string != "+") {
+        return false;
+    }
+    // !3 --------------------------------------------------
+    console.log("Condition 3: true");
+
+    // 4. A numeric must be followed by an operator 
+    // if the numeric is not the last argument
+    lastType = TypeEnum.NONE;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (exprTuple.length - 1 != index) {
+            if (lastType == TypeEnum.NUMBER && (element.type != TypeEnum.OPERATOR && element.string != ')')) {
+                return false;
+            }
+        } else {
+            break;
+        }
+
+        lastType = element.type;
+    }
+    // !4 --------------------------------------------------
+    console.log("Condition 4: true");
+
+
+    // 5. If a numeric is not the first element a operator 
+    // or a opening brace must be the element before
+    lastType = TypeEnum.NONE;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (index >= 1) {
+            if (element.type == TypeEnum.NUMBER && lastType != TypeEnum.OPERATOR) {
+                if (exprTuple[index - 1].string != '(') {
+                    return false;
+                }
+            }
+            lastType = element.type;
+        } else {
+            if (index == 1) {
+                lastType = element.type;
+            }
+            continue;
+        }
+    }
+    // !5 --------------------------------------------------
+    console.log("Condition 5: true");
+
+
+    // 6. The last element can't be a operator
+    if (exprTuple[exprTuple.length - 1].type == TypeEnum.OPERATOR) {
+        return false;
+    }
+    // !6 --------------------------------------------------
+    console.log("Condition 6: true");
+
+
+    // 7. The first element in a brace can't 
+    // be an operator except '+' or '-'
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (element.string == '(' && exprTuple[index + 1].type == TypeEnum.OPERATOR) {
+            if (!(exprTuple[index + 1].string == '-' || exprTuple[index + 1].string == '+')) {
+                return false;
+            }
+        }
+    }
+    // !7 --------------------------------------------------
+    console.log("Condition 7: true");
+
+    // 8. The element before a closing brace can't be an operator
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (element.string == ')' && exprTuple[index - 1].type == TypeEnum.OPERATOR) {
+            return false;
+        }
+    }
+    // !8 --------------------------------------------------
+    console.log("Condition 8: true");
+
+
+    // If no other of the listed cases are false the input must be valid
+    return true;
+}
+
+function findBraceAndSolveIt(exprTuple) {
+    console.log("Solving:");
+    console.log(exprTuple);
+
+    let openBraceCounter = null;
+    let startIndex = null;
+    let endIndex = null;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (element.string == '(') {
+            if (openBraceCounter == null) {
+                startIndex = index;
             }
 
-            currentOperator = lexList[i];
+            openBraceCounter++;
+        }
 
-            parsedList.push({
-                currentNumeric,
-                currentOperator
-            })
-            currentNumeric = '';
-            currentOperator = '';
+        if (element.string == ')') {
+            if (openBraceCounter == 1) {
+                endIndex = index;
+            }
+
+            openBraceCounter--;
+        }
+
+        if (openBraceCounter == 0) {
+            break;
         }
     }
 
-    console.log("---------------------------------------");
-    console.log("Parsing finished...");
+    if ((startIndex == null && endIndex != null) || (startIndex != null && endIndex == null)) {
+        // Should be catched within the checkRules() function but Yolo
+        return false;
+    }
 
-    console.log(parsedList);
+
+    if (startIndex == null && endIndex == null) {
+        // If the loop didn't find a matching pair of braces
+        // the tuple doesn't contain one and can be solved
+
+        console.log("Solving because no brace found!")
+        console.log(exprTuple);
+
+        console.log("Resolved: ")
+        let res = solveTupleWithoutBraces(exprTuple)
+
+        console.log("Returning: ");
+        console.log(res);
+
+        return res;
+    } else {
+        // The loop found a matching pair of
+        // braces and solves them recursively
+
+        let tmpTuple = Array.from(exprTuple);
+
+        console.log("Recursively solving: ")
+        console.log(tmpTuple);
+        console.log("Solving from: " + startIndex + " to " + endIndex);
+
+        let toBeSolved = tmpTuple.splice(startIndex, endIndex-startIndex+1);
+        toBeSolved.splice(0, 1); // Delete the first brace
+        toBeSolved.splice(toBeSolved.length-1, 1); // Delete the last brace
+
+        console.log("This will be solved!")
+        console.log(toBeSolved);
+
+        let res = findBraceAndSolveIt(toBeSolved);
+
+        tmpTuple = exprTuple;
+
+        console.log("Current exprTuple: ")
+        console.log(exprTuple);
+
+        console.log("Replacing:");
+        console.log(tmpTuple.splice(startIndex, endIndex-startIndex+1, res));
+
+        console.log("Inserted:")
+        console.log(tmpTuple);
+
+        return findBraceAndSolveIt(tmpTuple);
+    }
+}
+
+function solveTupleWithoutBraces(exprTuple) {
+    let parsedTuple = convertLexedToParsedForm(exprTuple);
+
+    let isSolved = false;
+
+    if (parsedTuple.length == 1) {
+        console.log()
+        return {type: TypeEnum.NUMBER, string: String(exprTuple[0].string)};
+    }
+
+    if (parsedTuple.length < 1) {
+        return false;
+    }
+
+    while (!isSolved) {
+        let index = getFirstHighestRankedOperator(parsedTuple, 0);
+
+        let index_result = solveAtIndex(parsedTuple, index);
+
+        console.log(index_result);
+        
+        parsedTuple.splice(index, 2, {numeric: index_result[0].string, operator: index_result[1].string});
+    
+        if (parsedTuple.length == 1) {
+            return index_result[0];
+        }
+    }
+}
+
+function convertLexedToParsedForm(exprTuple) {
+    let numeric = null;
+    let operator = null;
+
+    let parsedList = [];
+
+    // Allows to generate negative numbers 
+    // from the possible second operator
+    let lastType = TypeEnum.NONE;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (element.type == TypeEnum.NUMBER) {
+            if (lastType == TypeEnum.NUMBER) {
+                numeric += element.string;
+            } else {
+                numeric = element.string;
+            }
+
+            if (index + 1 == exprTuple.length) {
+                operator = '//';
+
+                parsedList.push({
+                    numeric,
+                    operator
+                })
+            }
+
+            lastType = TypeEnum.NUMBER;
+        }
+
+        if (element.type == TypeEnum.OPERATOR) {
+            
+
+            if (lastType == TypeEnum.OPERATOR) {
+                // The second operator must be minus
+                numeric = element.string;
+
+                lastType = TypeEnum.NUMBER;
+            } else {
+                operator = element.string;
+
+                parsedList.push({
+                    numeric,
+                    operator
+                })
+    
+                lastType = TypeEnum.OPERATOR;
+            }
+        }
+    }
     return parsedList;
 }
 
-function solveParsedExpression(parsedList) {
-
-    var tmpList = parsedList;
-    var operatorIndex = null;
-
-    if (parsedList.length <= 1) {
-        var isSolved = true
-    } else {
-        var isSolved = false;
-    }
-
-    counter = 0;
-
-    while (!isSolved) {
-        counter++;
-        console.log("---------------------------------------");
-        console.log(counter + ". passing...");
-
-        if (tmpList.length == 1) {
-            console.log("Expression solved");
-            return tmpList[0].currentNumeric;
+function getFirstHighestRankedOperator(parsedTuple, index) {
+    if (!(parsedTuple.length - 1 > index)) {
+        if (index <= 1) {
+            return 0;
         } else {
-            if (tmpList.length == 1) {
-                return tmpList[0].currentNumeric;
-            } else {
-                var returnVal = 0;
-
-                operatorIndex = getFirstHighestRankedOperator(tmpList, 0);
-
-                try {
-                    returnVal = solveAtIndex(tmpList, operatorIndex);
-                } catch (err) {
-                    throw err;
-                }
-
-                console.log("Solved elements from: " + returnVal.last + " to " + returnVal.next);
-
-                console.log(tmpList.splice(returnVal.last, returnVal.next - returnVal.last + 1));
-                console.log(tmpList.splice(returnVal.last, 0, {
-                    currentNumeric: returnVal.result,
-                    currentOperator: returnVal.operator
-                }));
-                console.log(tmpList.join());
-            }
-
-            console.log(tmpList);
+            return index - 1;
+        }
+    } else {
+        if (compareOperator(parsedTuple[index].operator, parsedTuple[index + 1].operator)) {
+            return index;
+        } else {
+            return getFirstHighestRankedOperator(parsedTuple, index + 1);
         }
     }
-    console.log("Expression solved...");
-    return tmpList[0].currentNumeric;
 }
 
-function solveAtIndex(parsedList, index) {
+function solveAtIndex(parsedTuple, index) {
 
-    console.log("Solving at index: " + index);
+    let number1 = Number(parsedTuple[index].numeric);
+    let number2 = Number(parsedTuple[index + 1].numeric);
+    let operator = parsedTuple[index].operator;
 
-    var result = 0;
-    var left_operator = parsedList[getNextNumeric(parsedList, index)].currentOperator;
-
-    console.log("Converting string to number...");
-
-    try {
-        var number1 = Number(parsedList[getLastNumeric(parsedList, index)].currentNumeric);
-        var number2 = Number(parsedList[getNextNumeric(parsedList, index)].currentNumeric);
-    } catch (err) {
-        throw err;
-    }
-    
-    console.log("Number 1: " + number1);
-    console.log("Number 2: " + number2);
-
-    var operator = parsedList[index].currentOperator;
-
-    console.log("Operator: " + operator);
-
-    var index_cpy = index
-
-    if (operator == '(') {
-        while (operator == '(' && index_cpy > 0) {
-            console.log(index_cpy);
-            operator = parsedList[index_cpy].currentOperator;
-            index_cpy--;
-        }
-
-        if (!(index_cpy > 0)) {
-            operator = parsedList[0].currentOperator;
-        }
-    }
-
-    if (operator == ')') {
-        while (operator == ')' && index_cpy > 0) {
-            console.log(index_cpy);
-            operator = parsedList[index_cpy].currentOperator;
-            index_cpy--;
-        }
-
-        if (!(index_cpy > 0)) {
-            operator = parsedList[0].currentOperator;
-        }
-    }
-
-    console.log("Computing: " + number1 + " " + operator + " " + number2);
+    let result = null;
+    let left_operator = parsedTuple[index + 1].operator;
 
     switch (operator) {
         case '+':
@@ -415,7 +552,7 @@ function solveAtIndex(parsedList, index) {
             break;
         case '/':
             if (number2 == 0) {
-                throw CalculationErrors.DivisionTroughNull;
+                result = null;
             } else {
                 result = number1 / number2;
             }
@@ -423,104 +560,17 @@ function solveAtIndex(parsedList, index) {
         case '^':
             result = Math.pow(number1, number2);
             break;
-        case ')':
-            try {
-                return solveAtIndex(parsedList, index - 1);
-            } catch (err) {
-                throw err;
-            }
-            
-        case '(':
-            if (index - 1 <= 0) {
-                result = number2;
-            } else {
-                try {
-                    return solveAtIndex(parsedList, index - 1);
-                } catch (err) {
-                    throw err;
-                }
-            }
-        case '//':
-            break;
         default:
-            throw CalculationErrors.InternalError;
+            break;
     }
 
-    console.log("Result is: " + result);
-    try {
 
-    } catch (err) {
-        throw err;
-    }
-    var next = getNextNumeric(parsedList, index);
-    var last = getLastNumeric(parsedList, index);
-
-    return {
-        result: result,
-        operator: left_operator,
-        last: last,
-        next: next
-    };
-}
-
-function getNextNumeric(parsedList, start_at_index) {
-
-    for (let index = start_at_index + 1; index < parsedList.length; index++) {
-        if (parsedList[index].currentNumeric != '') {
-            return index;
-        }
-    }
-
-    return false;
-}
-
-function getLastNumeric(parsedList, end_at_index) {
-
-    var lastIndex = null;
-
-    for (let index = 0; index <= end_at_index; index++) {
-        if (parsedList[index].currentNumeric != '') {
-            lastIndex = index;
-        }
-    }
-
-    if (lastIndex < 0 || lastIndex == null) {
-        return 0;
-    }
-
-    return lastIndex;
-}
-
-function getFirstHighestRankedOperator(parsedList, currentIndex) {
-    console.log("Trying index: " + currentIndex);
-
-    if (!(parsedList.length - 1 > currentIndex)) {
-        if (currentIndex <= 1) {
-            return 0;
-        } else {
-            return currentIndex - 1;
-        }
-    } else {
-        try {
-            if (compareOperator(parsedList[currentIndex].currentOperator, parsedList[currentIndex + 1].currentOperator)) {
-                if (parsedList[currentIndex].currentOperator == "(") {
-                    return getFirstHighestRankedOperator(parsedList, currentIndex + 1)
-                } else {
-                    return currentIndex;
-                }
-            } else {
-                return getFirstHighestRankedOperator(parsedList, currentIndex + 1);
-            }
-        } catch (err) {
-            throw err;
-        }
-    }
+    return [{type: TypeEnum.NUMBER, string: String(result)}, {type: TypeEnum.OPERATOR, string: String(left_operator)}];
 }
 
 function compareOperator(operator1, operator2) {
-
-    var op1Val;
-    var op2Val;
+    let op1Val;
+    let op2Val;
 
     switch (operator1) {
         case '+':
@@ -538,20 +588,14 @@ function compareOperator(operator1, operator2) {
         case '^':
             op1Val = SolvingOrder.POWER;
             break;
-        case '(':
-            op1Val = SolvingOrder.LEFT_BRACE;
-            break;
-        case ')':
-            op1Val = SolvingOrder.RIGHT_BRACE;
-            break;
         case '//':
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            throw CalculationErrors.InternalError;
+            return null;
     }
 
-    switch (operator2[0]) {
+    switch (operator2) {
         case '+':
             op2Val = SolvingOrder.ADDITION;
             break;
@@ -567,24 +611,18 @@ function compareOperator(operator1, operator2) {
         case '^':
             op2Val = SolvingOrder.POWER;
             break;
-        case '(':
-            op2Val = SolvingOrder.LEFT_BRACE;
-            break;
-        case ')':
-            op2Val = SolvingOrder.RIGHT_BRACE;
-            break;
         case '//':
             op1Val = SolvingOrder.END_OF_EQUATION;
             break;
         default:
-            throw CalculationErrors.InternalError;
+            return null;
     }
 
     if (op1Val < op2Val) {
-        console.log("Compared Operator: '" + operator1 + "' and Operator: '" + operator2 + "' :: '" + operator2 + "' is higher");
         return false;
     } else {
-        console.log("Compared '" + operator1 + "' and '" + operator2 + "' -> '" + operator1 + "' is higher");
         return true;
     }
 }
+
+console.log(evaluateMathematicalExpression("2 ^ 8"));
