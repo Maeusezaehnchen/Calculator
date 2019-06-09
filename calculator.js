@@ -100,6 +100,8 @@ function lexExpression(exprString) {
     var currentString = '';
     var lexList = [];
 
+    exprString = exprString.replace(/\s/g,'');
+
     for (var i = 0; i < exprString.length; i++) {
         for (var a = 0; a < operators.length; a++) {
 
@@ -588,3 +590,5 @@ function compareOperator(operator1, operator2) {
         return true;
     }
 }
+
+console.log(evaluateMathematicalExpression("2 ^ 8 "))
