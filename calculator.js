@@ -626,5 +626,3 @@ function compareOperator(operator1, operator2) {
         return true;
     }
 }
-
-console.log(evaluateMathematicalExpression("2 ^ 8 "))
