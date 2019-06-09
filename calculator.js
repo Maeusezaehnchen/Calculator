@@ -8,7 +8,7 @@ License:
 
 MIT License
 
-Copyright (c) 2019 Maeusezaehnchen
+Copyright (c) 2019 Sebastian Kern
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,11 +48,17 @@ SolvingOrder = {
     MODULO: 1,
 
     POWER: 2,
-    
+
 }
 
 function evaluateMathematicalExpression(expressionString) {
     let lexedTuple = lexExpression(expressionString);
+
+    if (!checkRules(lexedTuple)) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 function lexExpression(exprString) {
@@ -60,7 +66,7 @@ function lexExpression(exprString) {
     var numbers = '0123456789.';
     var brace = '()';
 
-    var lastType = TypeEnum.NONE;
+    var type = TypeEnum.NONE;
     var string = '';
     var lexList = [];
 
@@ -68,47 +74,59 @@ function lexExpression(exprString) {
         for (var a = 0; a < operators.length; a++) {
             if (exprString[i] == operators[a]) {
                 if (string != '') {
-                    console.log(lastType, string);
-                    lexList.push({lastType, string});
+                    lexList.push({
+                        type,
+                        string
+                    });
                 }
 
-                lastType = TypeEnum.OPERATOR;
+                type = TypeEnum.OPERATOR;
 
-                console.log(lastType, exprString[i]);
-                lexList.push({lastType, string: exprString[i]})
+                lexList.push({
+                    type,
+                    string: exprString[i]
+                })
 
                 string = '';
 
                 if (i + 1 == exprString.length && string != '') {
-                    console.log(lastType, string);
-                    lexList.push({lastType, string});
+                    lexList.push({
+                        type,
+                        string
+                    });
                 }
             }
         }
 
         for (var a = 0; a < numbers.length; a++) {
             if (exprString[i] == numbers[a]) {
-                if (lastType == TypeEnum.NUMBER) {
+                if (type == TypeEnum.NUMBER) {
                     string += exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
                 } else {
                     if (string != '') {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
-                    lastType = TypeEnum.NUMBER;
+                    type = TypeEnum.NUMBER;
 
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
                 }
             }
@@ -116,102 +134,192 @@ function lexExpression(exprString) {
 
         for (var a = 0; a < brace.length; a++) {
             if (exprString[i] == brace[a]) {
-                if (lastType == TypeEnum.BRACE) {
-                    console.log(lastType, string);
-                    lexList.push({lastType, string});
+                if (type == TypeEnum.BRACE) {
+                    lexList.push({
+                        type,
+                        string
+                    });
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
                 } else {
                     if (string != '') {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
 
-                    lastType = TypeEnum.BRACE;
+                    type = TypeEnum.BRACE;
 
                     string = exprString[i];
 
                     if (i + 1 == exprString.length) {
-                        console.log(lastType, string);
-                        lexList.push({lastType, string});
+                        lexList.push({
+                            type,
+                            string
+                        });
                     }
                 }
             }
         }
     }
 
+    console.log(lexList);
+
     if (lexList.length == 0) {
+        console.log("String is empty")
+
         return null;
     }
 
     return lexList;
 }
 
-function getAndSolveBrace(exprString) {
-        let openBraceCounter = null;
-        let startIndex = null;
-        let endIndex = null;
+function checkRules(exprTuple) {
+    // Proves that the input string is a legit mathematical string
 
-        exprString = exprString.replace(/\s/g, "");
+    // 1. A Maximum of 2 operators after each other,
+    // but only if the second operator is a minus
+    let lastlastType = TypeEnum.NONE;
+    let lastType = TypeEnum.NONE;
+    let currentType = TypeEnum.NONE;
 
-        for (let index = 0; index < exprString.length; index++) {
-            const element = exprString[index];
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
 
-            if (element == '(') {
-                openBraceCounter++;
+        lastlastType = lastType;
+        lastType = currentType;
+        currentType = element.type;
 
-                console.log("Found '(' at index: " + index);
+        if (lastType == currentType && lastlastType == lastType) {
+            return false;
+        } else {
+            if (currentType == lastType && lastlastType != lastType) {
+                if (currentType != TypeEnum.OPERATOR) {
+                    return false;
+                }
 
-                if (openBraceCounter == 1) {
-                    startIndex = index;
+                if (element.string != "-") {
+                    return false;
                 }
             }
+        }
+    }
+    // !1 --------------------------------------------------
 
-            if (element == ')') {
-                openBraceCounter--;
 
-                console.log("Found ')' at index: " + index);
+    // 2. No closing braces before the first opening brace
+    let openBraceCount = null;
 
-                if (openBraceCounter == 0) {
-                    endIndex = index;
-                    break;
+    exprTuple.forEach(element => {
+        if (element.string == '(') {
+            openBraceCount++;
+        }
+
+        if (element.string == ')') {
+            openBraceCount--;
+        }
+
+        if (openBraceCount < 0) {
+            // If the open brace count falls below zero a 
+            // brace was closed that was never opened
+            return false;
+        }
+    });
+
+    if (openBraceCount != 0) {
+        // If the open brace count is higher than zero 
+        // when the loop has finished a brace 
+        // that was opened was not closed
+        return false;
+    }
+    // !2 --------------------------------------------------
+
+
+    // 3. The first symbol can't be a Operator except '-' and '+'
+    if (exprTuple[0].type == TypeEnum.OPERATOR && exprTuple[0].string != "-" && exprTuple[0].string != "+") {
+        return false;
+    }
+    // !3 --------------------------------------------------
+
+
+    // 4. A numeric must be followed by an operator 
+    // if the numeric is not the last argument
+    lastType = TypeEnum.NONE;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (exprTuple.length - 1 != index) {
+            if (lastType == TypeEnum.NUMBER && (element.type != TypeEnum.OPERATOR && element.string != ')')) {
+                return false;
+            }
+        } else {
+            break;
+        }
+
+        lastType = element.type;
+    }
+    // !4 --------------------------------------------------
+
+    // 5. If a numeric is not the first element a operator 
+    // or a opening brace must be the element before
+    lastType = TypeEnum.NONE;
+
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+
+        if (index >= 1) {
+            if (element.type == TypeEnum.NUMBER && lastType != TypeEnum.OPERATOR) {
+                if (exprTuple[index-1].string != '(') {
+                    return false;
                 }
             }
+            lastType = element.type;
+        } else {
+            if (index == 1) {
+                lastType = element.type;
+            }
+            continue;
         }
+    }
+    // !5 --------------------------------------------------
 
-        if (openBraceCounter == null) {
-            // solveExpression(exprString);
+    // 6. The last element can't be a operator
+    if (exprTuple[exprTuple.length-1].type == TypeEnum.OPERATOR) {
+        return false;
+    }
+    // !6 --------------------------------------------------
 
-            return 0;
+    // 7. The first element in a brace can't 
+    // be an operator except '+' or '-'
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+        
+        if (element.string == '(' && exprTuple[index+1].type == TypeEnum.OPERATOR) {
+            return false;
         }
+    }
+    // !7 --------------------------------------------------
 
-        if (openBraceCounter == 0) {
-            // let result = getAndSolveBrace(exprString.splice(startIndex, endIndex - startIndex));
-            // console.log(result);
 
-            let dif = endIndex - startIndex;
-
-            console.log("Startindex: " + startIndex);
-            console.log("Endindex: " + endIndex);
-            console.log("Difference: ", dif);
-
-            console.log(exprString.slice(startIndex, dif));
-            
-            console.log(exprString);
+    // 8. The element before a closing brace can't be an operator
+    for (let index = 0; index < exprTuple.length; index++) {
+        const element = exprTuple[index];
+        
+        if (element.string == ')' && exprTuple[index-1].type == TypeEnum.OPERATOR) {
+            return false;
         }
-            
-        if (openBraceCounter < 0) {
-            return null;
-        }
-
-        if (openBraceCounter > 0) {
-            return null;
-        }
+    }
+    // !8 --------------------------------------------------
+    return true;
 }
 
-console.log(lexExpression("/"));
+console.log(evaluateMathematicalExpression("12 * ( 12 + 12.45) / 546"));
