@@ -1,85 +1,98 @@
-*{
-    margin: 0;
-    padding: 0;
+* {
     font-family: "Montserrat", "Century Gothic", sans-serif;
 }
 
 body {
-    background: #333;
+    padding: 0;
+    margin: 0;
+
+    background: #212121;
+
+    color: #FFA000;
 }
 
-.container {
-    height: 100%;
-    width: 100%;
+.middlebox{
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 45%;
+    left: 50%;
+
     text-align: center;
-
-    color: white;
-
-    background-image: linear-gradient(-60deg, #16a085 0%, #f4d03f 100%);
 }
 
-.container p {
-
-    max-width: 600px;
-    margin: 40px auto;
-
-    font-size: 15px;
-    font-weight: 600;
-
-    color: #333;
+.middlebox i{
+    position: relative;
+    font-size: 450px;
 }
 
-.container .middlebox {
+.middlebox p{
+    font-size: 50px;
+}
+
+.in {
     position: absolute;
     transform: translate(-50%, -50%);
     left: 50%;
-    top: 22%;
-}
+    top: 30%;
 
-.container h1 {
-    color: #333;
-}
+    width: 250px;
+    height: 45px;
 
-.calculator-box {
-    height: 40px;
-    display: flex;
-    justify-content: center;
-}
-
-.calculator-box i{
-    background: #2f3542;
-    width: 40px;
-    line-height: 40px;
-}
-
-.ibox, .btn {
+    background: inherit;
     border: none;
+
     outline: none;
+
+    font-size: 16px;
+
+    color: #FFECB3;
 }
 
-.ibox {
-    width: 350px;
-    padding: 12px;
+.out {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 18%;
+
+    width: 250px;
+    height: 25px;
+
+    font-size: 20px; 
+
+    color: #FFECB3;
+
+    text-align: right;
+    text-overflow: clip;
+
+    text-transform: uppercase;
 }
 
 .btn {
-    background: #2f3542;
-    color: white;
-    padding: 0 10px;
-    cursor: pointer;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 78.75%;
+    top: 69%;
+
+    width: 50px;
+    height: 140px;
+    text-align: center;
+
+    padding: 0;
+    margin: 0;
+
+    border: 0;
+
+    background: inherit;
+
+    color: #FFECB3;
 }
 
+.btn i{
+    text-align: center;
+    position: relative;
+    font-size: 35px;
+}
 
-.last-calculations-box {
-    position: absolute;
-    transform: translate(-50%, 0);
-
-    margin: 12px;
-    padding: 12px;
-
-    top: 35%;
-    left: 50%;
-
-    max-width: 500px;
-    width: 400px;
+.btn:hover {
+    color: #607D8B;
 }

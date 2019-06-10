@@ -56,6 +56,10 @@ SolvingOrder = {
 function evaluateMathematicalExpression(expressionString) {
     let lexedTuple = lexExpression(expressionString);
 
+    if (!lexedTuple) {
+        return false;
+    }
+
     if (!checkRules(lexedTuple)) {
         return false;
     } else {
@@ -180,7 +184,7 @@ function lexExpression(exprString) {
     if (lexList.length == 0) {
         console.log("String is empty")
 
-        return null;
+        return false;
     }
 
     return lexList;
@@ -293,7 +297,7 @@ function checkRules(exprTuple) {
 
         if (index >= 1) {
             if (element.type == TypeEnum.NUMBER && lastType != TypeEnum.OPERATOR) {
-                if (exprTuple[index - 1].string != '(') {
+                if (exprTuple[index - 1].string != '(' && exprTuple[index - 1].string != '-') {
                     return false;
                 }
             }
@@ -418,6 +422,10 @@ function findBraceAndSolveIt(exprTuple) {
 
         let res = findBraceAndSolveIt(toBeSolved);
 
+        if (!res) {
+            return false;
+        }
+
         tmpTuple = exprTuple;
 
         console.log("Current exprTuple: ")
@@ -428,7 +436,7 @@ function findBraceAndSolveIt(exprTuple) {
 
         console.log("Inserted:")
         console.log(tmpTuple);
-
+        
         return findBraceAndSolveIt(tmpTuple);
     }
 }
@@ -451,6 +459,10 @@ function solveTupleWithoutBraces(exprTuple) {
         let index = getFirstHighestRankedOperator(parsedTuple, 0);
 
         let index_result = solveAtIndex(parsedTuple, index);
+
+        if (!index_result) {
+            return false;
+        }
 
         console.log(index_result);
         
@@ -554,7 +566,7 @@ function solveAtIndex(parsedTuple, index) {
             break;
         case '/':
             if (number2 == 0) {
-                result = null;
+                result = false;
             } else {
                 result = number1 / number2;
             }

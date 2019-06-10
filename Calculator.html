@@ -10,25 +10,15 @@
 </head>
 
 <body>
-	<div class="container">
-		<div class="middlebox">
-			<h1>Online Calculator</h1>
-			<p>This calculator was designed by Sebastian Kern as a project for the Computer Science lessons in 10th
-				grade.</p>
-			<div class="calculator-box">
-				<i class="fas fa-calculator"></i>
-				<!-- Fix reload when enter is pressed -->
-				<input onkeypress="onEnterKeyPress(event)" id="in" class="ibox" type="text" name="" value=""
-					placeholder="Enter Your Expression here...">
-				<button onclick="calculate()" class="btn" type="button" name="button">Calculate</button>
-			</div>
-		</div>
-
-		<br>
-
-		<form id="last-calc" class="last-calculations-box">
-		</form>
-
+	<div class="middlebox">
+		<p>Online Calculator</p>
+		<i class="fas fa-calculator">
+			<output id="out" class="out"></output>
+			<input onkeypress="onEnterKeyPress(event)" id="in" class="in" type="text" placeholder="Enter Your Expression here...">
+			<button onclick="calculate()" class="btn" type="button" name="button">
+				<i class="fas fa-equals"></i>
+			</button>
+		</i>
 	</div>
 
 	<script src="calculator.js"></script>
@@ -44,51 +34,14 @@
 		function calculate() {
 			var inputString = document.getElementById('in').value;
 
-			try {
-				var value = evaluateMathematicalExpression(inputString);
-			} catch (err) {
-				alert(err);
-			}
-
-			loadNewCalculationsBox(value, inputString);
-
-			return false;
-		}
-		
-		function loadNewCalculationsBox(result, expression) {
-			var div = document.createElement("P");
-
-			div.style.background = "brown";
-			div.style.padding = "25px";
-			div.style.color = "white";
-			div.style.borderRadius = "6px";
-			div.style.fontWeight = "900";
-
-			div.innerText = expression + " = " + result;
-
-			var parent = document.getElementById("last-calc");
-			parent.insertBefore(div, parent.childNodes[0]);
-
-			for (let index = 0; index < parent.childNodes.length; index++) {
-				const element = parent.childNodes[index];
-
-				if (index != 0 && index < 5) {
-					element.style.background = "#222";
-					element.style.padding = "10px";
-					element.style.fontWeight = "700";
-
-					element.style.width = "300px";
-
-					element.style.opacity = String(1.5 / index);
-				}
-
-				if (index >= 5) {
-					element.style.opacity = "0";
-					element.style.position = "absolute";
-					element.style.top = "0";
-				}
-
-
+			var value = evaluateMathematicalExpression(inputString);
+			
+			if (value && value != "NaN" && value != "undefined" && value != "null") {
+				console.log(typeof(value));
+				document.getElementById("out").innerText = value;
+			} else {
+				alert("It seems that the string is not valid!");
+				return false;
 			}
 		}
 	</script>
