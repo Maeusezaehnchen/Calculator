@@ -1,98 +1,37 @@
-* {
-    font-family: "Montserrat", "Century Gothic", sans-serif;
-}
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
 body {
-    padding: 0;
-    margin: 0;
+    font-family: 'Roboto', sans-serif;
 
-    background: #212121;
-
-    color: #FFA000;
+    padding: 2em;
 }
 
-.middlebox{
+p {
+    font-size: 2em;
+}
+
+.middlebox {
     position: absolute;
+
     transform: translate(-50%, -50%);
+    width: 20em;
+    height: 25em;
+
     top: 45%;
     left: 50%;
 
-    text-align: center;
+
+    border-radius: 1.2em;
+
+    border: 2px solid dimgrey;
+
+    padding: 1.2em;
 }
 
-.middlebox i{
-    position: relative;
-    font-size: 450px;
+.spacer-md {
+    height: 1.2em;
 }
 
-.middlebox p{
-    font-size: 50px;
-}
-
-.in {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 30%;
-
-    width: 250px;
-    height: 45px;
-
-    background: inherit;
-    border: none;
-
-    outline: none;
-
-    font-size: 16px;
-
-    color: #FFECB3;
-}
-
-.out {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 18%;
-
-    width: 250px;
-    height: 25px;
-
-    font-size: 20px; 
-
-    color: #FFECB3;
-
-    text-align: right;
-    text-overflow: clip;
-
-    text-transform: uppercase;
-}
-
-.btn {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    left: 78.75%;
-    top: 69%;
-
-    width: 50px;
-    height: 140px;
-    text-align: center;
-
-    padding: 0;
-    margin: 0;
-
-    border: 0;
-
-    background: inherit;
-
-    color: #FFECB3;
-}
-
-.btn i{
-    text-align: center;
-    position: relative;
-    font-size: 35px;
-}
-
-.btn:hover {
-    color: #607D8B;
+.spacer-lg {
+    height: 2.4em;
 }
